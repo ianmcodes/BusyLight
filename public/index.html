@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <input type="button" value="SCAN" id="scan" />
+    <script type="text/javascript">
+      const btn = document.getElementById('scan');
+
+      btn.addEventListener("click", () => {
+        navigator.bluetooth.requestDevice({
+          acceptAllDevices: true
+        }).then((device) => {
+          console.log(device);
+        })
+      })
+    </script>
+  </body>
+</html>
