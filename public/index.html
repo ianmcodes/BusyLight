@@ -4,27 +4,43 @@
   </head>
   <body>
     <input type="button" value="SCAN" id="scan" />
-    <script type="text/javascript">
+    <script type="module">
       const btn = document.getElementById('scan');
+      const serviceUUID = "19B10000-E8F2-537E-4F6C-D104768A1214".toLowerCase();
+      const characteristicUUID = "19B10001-E8F2-537E-4F6C-D104768A1214".toLowerCase()
+      let characteristic;
+      
+      btn.addEventListener("click", requestDevice);
 
-      btn.addEventListener("click", () => {
-        navigator.bluetooth.requestDevice({
+      async function requestDevice() {
+        const device = await navigator.bluetooth.requestDevice({
           filters: [{
             name: "BusyLight"
-          }]
-          // acceptAllDevices: true
-        }).then((device) => {
-          console.log(device);
-          console.log(device.name);
-          return device.gatt.connect();
-        }).then((server) => {
-          return server.getPrimaryServices("19B10000-E8F2-537E-4F6C-D104768A1214".toLowerCase());
-        }).then((service) => {
-          return service[0].getCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214".toLowerCase());
-        }).then((characteristic) => {
-          console.log(characteristic.readValue());
-        }).catch(console.log);
-      })
+          }],
+          optionalServices: [serviceUUID]
+        });
+        const server = await gattConnect(device);
+        const service = await server.getPrimaryService(serviceUUID);
+        characteristic = await service.getCharacteristic(characteristicUUID);
+        window.characteristic = characteristic;
+        const data = await characteristic.readValue();
+        console.log(`Current state: ${new Uint8Array(data.buffer)}`);
+        const arr = new Uint8Array(1);
+        arr[0] = 1;
+        await characteristic.writeValue(arr);
+      }
+
+      async function gattConnect(device, retry = 5) {
+        let server;
+        try {
+          server = await device.gatt.connect();
+        } catch(e) {
+          if (retry > 0) {
+            server = await gattConnect(device, retry - 1);
+          }
+        }
+        return server;
+      }
     </script>
   </body>
 </html>
