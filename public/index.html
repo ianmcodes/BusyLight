@@ -3,28 +3,47 @@
   <head>
   </head>
   <body>
-    <input type="button" value="SCAN" id="scan" />
+    <div>
+      <input type="button" value="SCAN" id="scan" />
+    </div>
+    <div>
+      <ul>
+        <li><label><input type="radio" name="anim" value=0 />Rainbow</label></li>
+        <li><label><input type="radio" name="anim" value=1 checked />Red</label></li>
+        <li><label><input type="radio" name="anim" value=2 />Chase</label></li>
+        <li><label><input type="radio" name="anim" value=3 />Party! 🎉</label></li>
+      </ul>
+    </div>
+
     <script type="module">
       const btn = document.getElementById('scan');
       const serviceUUID = "19B10000-E8F2-537E-4F6C-D104768A1214".toLowerCase();
       const characteristicUUID = "19B10001-E8F2-537E-4F6C-D104768A1214".toLowerCase()
       let characteristic;
+      let device;
       
       btn.addEventListener("click", requestDevice);
+      const switches = Array.from(document.querySelectorAll('[name=anim]'));
+      switches.forEach((el) => {
+        el.addEventListener("change", (evt) => {
+          if(el.checked) {
+            const arr = new Uint8Array(1);
+            arr[0] = parseInt(el.value);
+            characteristic.writeValue(arr);
+          }
+        });
+      });
 
       async function requestDevice() {
-        const device = await navigator.bluetooth.requestDevice({
+        device = await navigator.bluetooth.requestDevice({
           filters: [{
             name: "BusyLight"
           }],
           optionalServices: [serviceUUID]
         });
+        device.addEventListener('gattserverdisconnected', onDisconnected);
         const server = await gattConnect(device);
-        const service = await server.getPrimaryService(serviceUUID);
-        characteristic = await service.getCharacteristic(characteristicUUID);
-        window.characteristic = characteristic;
-        const data = await characteristic.readValue();
-        console.log(`Current state: ${new Uint8Array(data.buffer)}`);
+        await setup(server);
         const arr = new Uint8Array(1);
         arr[0] = 1;
         await characteristic.writeValue(arr);
@@ -40,6 +59,20 @@
           }
         }
         return server;
+      }
+
+      async function setup(server) {
+        const service = await server.getPrimaryService(serviceUUID);
+        characteristic = await service.getCharacteristic(characteristicUUID);
+        window.characteristic = characteristic;
+        const data = await characteristic.readValue();
+        console.log(`Current state: ${new Uint8Array(data.buffer)}`);
+      }
+
+      async function onDisconnected(evt) {
+        const device = evt.target;
+        const server = await gattConnect(device);
+        await setup(server);
       }
     </script>
   </body>
