@@ -1,0 +1,22 @@
+{
+  "name": "busystatus",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ianmcodes/BusyLight.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ianmcodes/BusyLight/issues"
+  },
+  "homepage": "https://github.com/ianmcodes/BusyLight#readme",
+  "devDependencies": {
+    "simple-server": "^1.1.1"
+  }
+}
