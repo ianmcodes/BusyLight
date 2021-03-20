@@ -9,10 +9,21 @@
 
       btn.addEventListener("click", () => {
         navigator.bluetooth.requestDevice({
-          acceptAllDevices: true
+          filters: [{
+            name: "BusyLight"
+          }]
+          // acceptAllDevices: true
         }).then((device) => {
           console.log(device);
-        })
+          console.log(device.name);
+          return device.gatt.connect();
+        }).then((server) => {
+          return server.getPrimaryServices("19B10000-E8F2-537E-4F6C-D104768A1214".toLowerCase());
+        }).then((service) => {
+          return service[0].getCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214".toLowerCase());
+        }).then((characteristic) => {
+          console.log(characteristic.readValue());
+        }).catch(console.log);
       })
     </script>
   </body>
